@@ -137,7 +137,7 @@ const API_URL = "https://api.anthropic.com/v1/messages";
 const MODEL = "claude-sonnet-4-20250514";
 
 const callAI = async (system, userMsg, useSearch = false) => {
-  const body = { model: MODEL, max_tokens: 1000, system, messages: [{ role: "user", content: userMsg }] };
+  const body = { model: MODEL, max_tokens: 4000, system, messages: [{ role: "user", content: userMsg }] };
   if (useSearch) body.tools = [{ type: "web_search_20250305", name: "web_search" }];
   const r = await fetch(API_URL, { method: "POST", headers: {"Content-Type": "application/json","x-api-key": window.__OFFERPATH_KEY__ || "","anthropic-version": "2023-06-01",
   "anthropic-dangerous-direct-browser-access": "true"},body: JSON.stringify(body) });
@@ -148,7 +148,7 @@ const callAI = async (system, userMsg, useSearch = false) => {
 const callAIwithPDF = async (sys, b64, msg) => {
   const r = await fetch(API_URL, { method: "POST", headers: {"Content-Type": "application/json", "x-api-key": window.__OFFERPATH_KEY__ || "","anthropic-version": "2023-06-01",
   "anthropic-dangerous-direct-browser-access": "true"
-}, body: JSON.stringify({ model: MODEL, max_tokens: 1000, system: sys, messages: [{ role: "user", content: [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: b64 } }, { type: "text", text: msg }] }] }) });
+}, body: JSON.stringify({ model: MODEL, max_tokens: 4000, system: sys, messages: [{ role: "user", content: [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: b64 } }, { type: "text", text: msg }] }] }) });
   return (await r.json()).content?.filter(b => b.type === "text").map(b => b.text).join("\n") || "";
 };
 
