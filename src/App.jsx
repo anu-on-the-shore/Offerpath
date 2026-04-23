@@ -139,13 +139,16 @@ const MODEL = "claude-sonnet-4-20250514";
 const callAI = async (system, userMsg, useSearch = false) => {
   const body = { model: MODEL, max_tokens: 1000, system, messages: [{ role: "user", content: userMsg }] };
   if (useSearch) body.tools = [{ type: "web_search_20250305", name: "web_search" }];
-  const r = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const r = await fetch(API_URL, { method: "POST", headers: {"Content-Type": "application/json","x-api-key": window.__OFFERPATH_KEY__ || "","anthropic-version": "2023-06-01",
+  "anthropic-dangerous-direct-browser-access": "true"},body: JSON.stringify(body) });
   const d = await r.json();
   return d.content?.filter(b => b.type === "text").map(b => b.text).join("\n") || "";
 };
 
 const callAIwithPDF = async (sys, b64, msg) => {
-  const r = await fetch(API_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model: MODEL, max_tokens: 1000, system: sys, messages: [{ role: "user", content: [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: b64 } }, { type: "text", text: msg }] }] }) });
+  const r = await fetch(API_URL, { method: "POST", headers: {"Content-Type": "application/json", "x-api-key": window.__OFFERPATH_KEY__ || "","anthropic-version": "2023-06-01",
+  "anthropic-dangerous-direct-browser-access": "true"
+}, body: JSON.stringify({ model: MODEL, max_tokens: 1000, system: sys, messages: [{ role: "user", content: [{ type: "document", source: { type: "base64", media_type: "application/pdf", data: b64 } }, { type: "text", text: msg }] }] }) });
   return (await r.json()).content?.filter(b => b.type === "text").map(b => b.text).join("\n") || "";
 };
 
@@ -843,7 +846,25 @@ function RoleFinderTool({ onBack }) {
 /* ── ROOT ───────────────────────────────────────────────────── */
 export default function App() {
   const [page, setPage] = useState("landing");
-  const navigate = to => { setPage(to); window.scrollTo({ top:0, behavior:"smooth" }); };
+const [apiKey, setApiKey] = useState("");
+const [keyEntered, setKeyEntered] = useState(false);
+const navigate = to => { setPage(to); window.scrollTo({ top:0, behavior:"smooth" }); };
+
+  if (!keyEntered) return (
+  <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:"100vh", background:"#07091a", fontFamily:"'Plus Jakarta Sans',sans-serif" }}>
+    <div style={{ background:"rgba(255,255,255,.04)", border:"1px solid rgba(255,255,255,.1)", borderRadius:16, padding:"44px 40px", maxWidth:420, width:"90%", textAlign:"center" }}>
+      <div style={{ fontSize:40, marginBottom:16 }}>✦</div>
+      <h2 style={{ color:"#f1f5f9", fontWeight:800, fontSize:22, marginBottom:8 }}>Enter API Key to Launch</h2>
+      <p style={{ color:"#64748b", fontSize:14, marginBottom:24, lineHeight:1.6 }}>Your Anthropic API key. Never stored — lives only in this browser session.</p>
+      <input type="password" placeholder="sk-ant-..." value={apiKey} onChange={e => setApiKey(e.target.value)}
+        style={{ width:"100%", background:"rgba(255,255,255,.05)", border:"1px solid rgba(255,255,255,.1)", borderRadius:10, padding:"12px 16px", fontSize:14, color:"#e2e8f0", marginBottom:16, fontFamily:"inherit", outline:"none", boxSizing:"border-box" }} />
+      <button disabled={apiKey.length < 20} onClick={() => { window.__OFFERPATH_KEY__ = apiKey; setKeyEntered(true); }}
+        style={{ width:"100%", background:"linear-gradient(135deg,#6366f1,#8b5cf6)", color:"#fff", border:"none", borderRadius:10, padding:"13px", fontWeight:700, fontSize:15, cursor:apiKey.length<20?"not-allowed":"pointer", opacity:apiKey.length<20?0.5:1 }}>
+        Launch OfferPath →
+      </button>
+    </div>
+  </div>
+);
 
   return (
     <div style={{ fontFamily:"'Plus Jakarta Sans',system-ui,sans-serif", background:"#07091a", minHeight:"100vh", color:"#e2e8f0" }}>
